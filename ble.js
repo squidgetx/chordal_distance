@@ -27,7 +27,7 @@ oscPort.on("ready", function () {
 Noble.on('stateChange', state => {
   if (state === 'poweredOn') {
     console.log('Scanning for primary sensor');
-    Noble.startScanning([UUID_PRIMARY], true);
+    Noble.startScanning([UUID_PRIMARY]);
   //  Noble.startScanning([UUID_SECONDARY]);
   } else {
     console.log('Scan failed');
@@ -106,7 +106,7 @@ function onPrimaryDiscovered(error, services, characteristics) {
 
   primaryConnected = true;
   if (!secondaryConnected) {
-    console.log('Scanning for primary sensor');
+    console.log('Scanning for secondary sensor');
     Noble.startScanning([UUID_SECONDARY]);
   }
 

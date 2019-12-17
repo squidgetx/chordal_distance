@@ -1,16 +1,23 @@
 inlets = 2;
 outlets = 3;
 var notes = [0,0,0,0,0];
-// G, AE
-var am9 = [91, 69, 76, 72, 83];
-var am9overD = [91, 69, 84, 74, 83];
-var am9overE = [91, 72, 69, 76, 83];
-var am9overC = [88, 71, 67, 74, 84];
-
-var all = [am9, am9overD, am9overE, am9overC];
+// 69: A
+// A G A E A E
+var am9 = [69, 91, 81, 88, 57, 64];
+var am9 = [69, 91, 81, 88, 57, 64];
 
 
-var thresholds = [10, 50, 52, 150, 152]
+var dm9 = [64, 74, 77, 69, 64, 62]
+// c d 
+
+
+// C E G B D C9
+// E G B D F E9
+
+var all = [am9];
+
+
+var thresholds = [10, 20, 50, 52, 100, 102]
 var lastTension = 0;
 var lastAngle = 0;
 
@@ -29,14 +36,19 @@ function dump() {
 function list() {
 	var f = arguments[0];
 	var angleMapped = Math.floor(arguments[1]);
+	var angleMapped2 = Math.floor(arguments[2]);
+	var downwardVel = arguments[3];
+	var c = am9;
 
-	var chord = all[angleMapped];
+
+	// stack 4ths?
 	if (lastTension < f) {
 		for(var i = 0; i < thresholds.length; i++) {
-			if (f > thresholds[i] && notes[i] != chord[i]) {
+			var chordTone = c[i];
+			if (f > thresholds[i] && notes[i] != chordTone) {
 				outlet(0, [i, notes[i], 0]);		
-				outlet(0, [i, chord[i], 80]);		
-				notes[i] = chord[i];
+				outlet(0, [i, chordTone, 80]);		
+				notes[i] = chordTone;
 			}
 		}
 	} else {
