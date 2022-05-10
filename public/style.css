@@ -1,0 +1,14 @@
+body {
+  font-family: sans-serif;
+}
+
+.controller {
+  display: inline-block;
+  cursor: pointer;
+  padding: 1em;
+  border-radius: 2px;
+}
+
+.controller:hover {
+  background-color: grey;
+}

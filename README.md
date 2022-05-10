@@ -6,3 +6,5 @@ Usage:
 
 1. Command line: `node ble`
 2. Max/MSP: start node_ble.maxpat patch
+
+Requires Node 8.17.0
