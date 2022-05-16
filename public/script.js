@@ -38,6 +38,14 @@ socket.on("list_devices", (data) => {
   }
 });
 
+let setup_slider = function (name) {
+  const aslider = document.getElementById(`angle${name}_slider`);
+  aslider.oninput = () => {
+    console.log(aslider.value);
+    socket.emit("angle" + name, parseInt(aslider.value) / 100);
+  };
+};
+
 window.onload = () => {
   document.getElementById("status").addEventListener("click", () => {
     console.log("test");
@@ -47,4 +55,14 @@ window.onload = () => {
   socket.on("status", (data) => {
     document.getElementById("status").innerHTML = data;
   });
+
+  const slider = document.getElementById("tension_slider");
+  slider.oninput = () => {
+    console.log(slider.value);
+    socket.emit("tension", parseInt(slider.value));
+  };
+  setup_slider("X1");
+  setup_slider("X2");
+  setup_slider("Y1");
+  setup_slider("Y2");
 };
