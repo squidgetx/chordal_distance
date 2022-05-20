@@ -3,7 +3,7 @@ const Util = require("./util");
 const Nanotimer = require("./nanotimer");
 
 const Harmony = require("./harmony");
-const CHANNEL = 7;
+const CHANNEL = 4;
 
 let clock = null;
 let energy = 0;
@@ -24,27 +24,56 @@ function init(device, socket_) {
 }
 
 const NOTES = [
-  Midi.NOTES.G, // C,
-  Midi.NOTES.G, // D,
-  Midi.NOTES.G, // E
-  Midi.NOTES.G, // F
-  Midi.NOTES.A, // G
+  Midi.NOTES.C, // C,
+  Midi.NOTES.D, // D,
+  Midi.NOTES.E, // E
+  Midi.NOTES.F, // F
+  Midi.NOTES.G, // G
   Midi.NOTES.A, // A
-  Midi.NOTES.A, // A
+  Midi.NOTES.Bb, // A
 ];
 
+const INTERVALS = [
+  [Midi.INTERVALS.unison],
+  [Midi.INTERVALS.unison, Midi.INTERVALS.octave],
+  [Midi.INTERVALS.p5, Midi.INTERVALS.octave],
+  [Midi.INTERVALS.p5, Midi.INTERVALS.min7],
+  [Midi.INTERVALS.p5, Midi.INTERVALS.octave, Midi.INTERVALS.maj2 + 12],
+  [
+    Midi.INTERVALS.p5,
+    Midi.INTERVALS.octave,
+    Midi.INTERVALS.maj2 + 12,
+    Midi.INTERVALS.tritone + 12,
+  ],
+];
+
+const TNOTES = [
+  Midi.NOTES["F#"], // C,
+  Midi.NOTES.C, // D,
+  Midi.NOTES.G, // E
+  Midi.NOTES.G, // F
+  Midi.NOTES["F#"], // G
+  Midi.NOTES["F#"], // A
+  Midi.NOTES.F, // A
+];
 // Harmonically, the marimba could: underscore the existing harmony
 // or, add new color
 
 function playNote() {
-  let octave = Math.floor(Util.scale(energy, 0, 24, 2, 4));
-  let note = Harmony.makeNote(Util.index(lastAngleX1, NOTES), octave);
+  let root = Harmony.makeNote(Util.index(lastAngleX1, NOTES), 5);
+  let note_pool = Util.index(lastAngleY1, INTERVALS);
+  let note = root + Util.index(Math.random(), note_pool);
 
   let velocity = Util.scale(energy, 0, 24, 30, 100);
   let duration = 100;
   //console.log("note " + note + " " + velocity);
 
   Midi.playNote(midi_device, CHANNEL, note, velocity, duration);
+
+  //let tvelocity = Util.clamp(Util.scale(energy, 16, 24, 0, 100), 0, 127);
+  //let tnote = Harmony.makeNote(Util.index(lastAngleX2, TNOTES), octave);
+
+  //Midi.playNote(midi_device, CHANNEL, tnote, tvelocity, duration);
 
   clock.setTimeout(playNote, "", frequency);
 }
@@ -58,15 +87,15 @@ function tick(tension, angleX1, angleY1, angleX2, angleY2) {
   lastAngleY1 = angleY1;
   lastAngleY2 = angleY2;
   lastTension = tension;
-  Midi.setControl(midi_device, CHANNEL, 1, Util.scale(tension, 0, 100, 127, 1));
+  Midi.setControl(midi_device, CHANNEL, 1, Util.scale(tension, 0, 100, 0, 127));
   Midi.setControl(
     midi_device,
     CHANNEL,
     2,
-    Util.scale(lastAngleY1, 0, 1, 1, 127)
+    Util.scale(lastAngleY2, 0, 1, 64, 127)
   );
 
-  frequency = Util.clamp(2000 / (energy + 1), 100, 5000);
+  frequency = Util.clamp(1500 / (energy + 1), 100, 500);
 }
 
 module.exports = {

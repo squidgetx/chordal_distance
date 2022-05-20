@@ -45,7 +45,9 @@ let connect = function (device_array) {
 
   // Set up primary BLE device notifications (tension + accel)
   function onDeviceDiscovered(peripheral) {
+    console.log(peripheral.id);
     let device = devices[peripheral.id];
+    console.log(devices);
     return (error, services, characteristics) => {
       if (characteristics.length != device.characteristics.length) {
         console.log(

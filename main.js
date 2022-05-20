@@ -6,6 +6,9 @@ const Nanotimer = require("./nanotimer");
 
 const Marimba = require("./marimba");
 const Strings = require("./strings");
+const Vibes = require("./vibes");
+const Bass = require("./bass");
+const Horns = require("./horns");
 
 let tension_GLOBAL = 0;
 let angleX1_GLOBAL = 0;
@@ -32,10 +35,7 @@ const UUID_SECONDARY = "05fe3c85-7f28-4685-ab2a-b036324da113";
  * Then, an event loop controlled by MASTER_CLOCK
  * consumes these values
  */
-let instruments = [
-  //Marimba,
-  Strings,
-];
+let instruments = [Strings, Marimba, Vibes, Bass, Horns];
 
 let tick = function () {
   // Master clock callback. All updating of state occurs here
@@ -60,8 +60,14 @@ let init = function (socket) {
   console.log("Initialized!");
 };
 
-let tensionCallback = () => {};
-let primaryAccelCallback = () => {};
+let primaryCallback = (data) => {
+  let accX = data.readFloatLE();
+  let accY = data.readFloatLE(4);
+  let accZ = data.readFloatLE(8);
+  let tension = data.readFloatLE(12) / 3000;
+  console.log(tension);
+  tension_GLOBAL = tension;
+};
 let secondaryAccelCallback = (data) => {
   let accel = handleAcceleration(data);
 };
@@ -124,35 +130,30 @@ io.on("connection", (socket) => {
   Midi.socket = socket;
 });
 
-/*
 Ble.connect([
   {
     uuid: UUID_PRIMARY,
-    id: "test",
+    //id: "ea4d428e233340bb91ef1be5c710e41f",
+    id: "1b34449c550b41ae80ae7cc9553e76c5",
     name: "primary",
     characteristics: [
       {
-        name: "tension",
-        callback: tensionCallback,
-      },
-      {
-        name: "accel",
-        callback: primaryAccelCallback,
+        name: "primary",
+        callback: primaryCallback,
       },
     ],
   },
   {
     uuid: UUID_SECONDARY,
-    id: "eccb8ace4f1b4a92a591ac4d5041c30e",
+    id: "d839f315c4f84082ad1d4ebb1df398f1",
     name: "secondary",
     characteristics: [
       {
         name: "accel",
-        callback: secondaryAccelCallback,
+        callback: primaryCallback,
       },
     ],
   },
 ]);
-*/
 
 setTimeout(() => init(io), 2000);

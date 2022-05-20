@@ -22,6 +22,7 @@ const NOTES = {
 };
 
 const INTERVALS = {
+  unison: 0,
   min2: 1,
   maj2: 2,
   min3: 3,
@@ -33,6 +34,7 @@ const INTERVALS = {
   maj6: 9,
   min7: 10,
   maj7: 11,
+  octave: 12,
 };
 
 let playNote = function (device, channel, note, velocity, duration) {
@@ -44,9 +46,6 @@ let playNote = function (device, channel, note, velocity, duration) {
     velocity: velocity,
     channel: channel,
   });
-  console.log(
-    `sending note ${note} with vel ${velocity} to channel ${channel}`
-  );
   setTimeout(() => {
     device.send(
       "noteoff",
@@ -95,13 +94,7 @@ let noteSustain = function (device, channel, voice, note, velocity) {
 
 let playChord = function (device, channel, notes, velocities) {
   for (let i = 0; i < notes.length; i++) {
-    noteSustain(
-      midi_device,
-      STRINGS_CHANNEL,
-      i,
-      string_notes[i] + STRINGS_OCTAVE * 12,
-      80
-    );
+    noteSustain(midi_device, channel, i, notes[i], velocities[i]);
   }
 };
 
