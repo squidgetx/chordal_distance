@@ -60,6 +60,7 @@ let connect = function (device_array, socket) {
           `ERROR! Mismatched characteristic lengths for device ${device.uuid}`
         );
       }
+      console.log(`Found ${characteristics.length} characteristics`);
       for (let i = 0; i < characteristics.length; i++) {
         const characteristic = characteristics[i];
         characteristic.on("data", (data) => {

@@ -25,10 +25,12 @@ span.disconnected {
   color: grey;
 }
 
-#connected {
-  border-style: dashed;
+#connected, #monitors {
+  border-style: dotted;
   border-width: 2px;
   padding-left: 1em;
+  margin-bottom: 1em;
+  width: 850px;
 }
 
 signal-monitor {
@@ -37,4 +39,12 @@ signal-monitor {
 
 .signal-label {
   margin-bottom: 0;
+}
+
+button {
+}
+
+#calibrate-status {
+  font-style: italic;
+  font-size: 10pt;
 }

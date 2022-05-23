@@ -16,6 +16,7 @@ let angleX2_GLOBAL = 0;
 let angleY1_GLOBAL = 0;
 let angleY2_GLOBAL = 0;
 let master_clock_GLOBAL = null;
+let calibrate_GLOBAL = false;
 let status = "pause";
 
 const midi_devices = {
@@ -60,17 +61,24 @@ let init = function (socket) {
   console.log("Initialized!");
 };
 
+let calibration_array = [];
+let tension_coefficient = 1 / 3000;
+let tension_offset = 0;
+
 let primaryCallback = (data) => {
   let accX = data.readFloatLE();
   let accY = data.readFloatLE(4);
   let accZ = data.readFloatLE(8);
-  let tension = data.readFloatLE(12) / 3000;
-  tension_GLOBAL = Math.abs(tension);
+  let tension_raw = data.readFloatLE(12);
+  tension_GLOBAL = Math.abs(tension_raw + tension_offset) * tension_coefficient;
   angleX1_GLOBAL = accZ;
   angleY1_GLOBAL = accY;
   io.emit("tension", tension_GLOBAL);
   io.emit("angle_x1", angleX1_GLOBAL);
   io.emit("angle_y1", angleY1_GLOBAL);
+  if (calibrate_GLOBAL) {
+    calibration_array.push(tension_raw);
+  }
 };
 
 let secondaryCallback = (data) => {
@@ -111,7 +119,6 @@ io.on("connection", (socket) => {
   socket.on("server_check", (data) => {
     socket.emit("server_ack", new Date().getTime());
   });
-
   socket.on("tension", (data) => {
     tension_GLOBAL = data;
   });
@@ -126,6 +133,36 @@ io.on("connection", (socket) => {
   });
   socket.on("angleY2", (data) => {
     angleY2_GLOBAL = data;
+  });
+  socket.on("calibrate_begin", (data) => {
+    calibrate_GLOBAL = true;
+    calibration_array = [];
+    socket.emit(
+      "calibrate_message",
+      "Zeroing the load sensor (5 seconds)... Please ensure no tension is placed on the handle."
+    );
+    // After 5 seconds, use the average data to set the zero
+    setTimeout(() => {
+      tension_offset =
+        -calibration_array.reduce((a, b) => a + b) / calibration_array.length;
+      console.log(tension_offset);
+      console.log(calibration_array);
+      socket.emit(
+        "calibrate_message",
+        "Calibrating maximum force (15 seconds). Please load the handle with the maximum expected force."
+      );
+      calibration_array = [];
+      setTimeout(() => {
+        tension_coefficient =
+          100 /
+          calibration_array.reduce((a, b) =>
+            Math.max(Math.abs(a), Math.abs(b))
+          );
+        console.log(tension_coefficient);
+        socket.emit("calibrate_finish");
+        calibrate_GLOBAL = false;
+      }, 15000);
+    }, 5000);
   });
 
   Midi.socket = socket;

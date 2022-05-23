@@ -131,4 +131,20 @@ window.onload = () => {
   socket.on("server_ack", (time) => {
     lastAckTime = new Date().getTime();
   });
+
+  const button = document.getElementById("calibrate");
+  const cal_status = document.getElementById("calibrate-status");
+  button.addEventListener("click", () => {
+    socket.emit("calibrate_begin");
+    button.setAttribute("disabled", true);
+  });
+
+  socket.on("calibrate_message", (data) => {
+    cal_status.innerHTML = data;
+  });
+
+  socket.on("calibrate_finish", (_) => {
+    cal_status.innerHTML = "";
+    button.removeAttribute("disabled");
+  });
 };
