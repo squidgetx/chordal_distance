@@ -1,9 +1,9 @@
 {
-  "name": "sockets",
+  "name": "chordal-distance",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node sockets.js"
+    "start": "node main.js"
   },
   "dependencies": {
     "@abandonware/noble": "^1.9.2-15",

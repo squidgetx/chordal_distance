@@ -3,13 +3,20 @@
         <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"
             integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
             crossorigin="anonymous"></script>
+        <script src="./smoothie.js"></script>
         <script src="./script.js"></script>
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <div id="status" class="controller">play</div>
-        <div id="tension" class="controller">
-            Tension:
+        <h1>Chordal Distance</h1>
+        <div id="connected"></div>
+        <div id="monitors">
+            <signal-monitor id="tension"></signal-monitor>
+            <signal-monitor id="angle_x1"></signal-monitor>
+            <signal-monitor id="angle_y1"></signal-monitor>
+            <signal-monitor id="angle_x2"></signal-monitor>
+            <signal-monitor id="angle_y2"></signal-monitor>
+            <div hidden>
             <input type="range" min="1" max="100" value="50" class="slider" id="tension_slider">
             Angle X1:
             <input type="range" min="1" max="100" value="50" class="slider" id="angleX1_slider">
@@ -19,6 +26,12 @@
             <input type="range" min="1" max="100" value="50" class="slider" id="angleX2_slider">
             Angle Yw:
             <input type="range" min="1" max="100" value="50" class="slider" id="angleY2_slider">
+            </div>
         </div>
+        <div id="midi_control">
+            <h2>Midi Controls</h2>
+            <div id="status" class="controller">play</div>
+        </div>
+
     </body>
 </html>

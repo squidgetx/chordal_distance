@@ -7,16 +7,18 @@ let Noble = require("@abandonware/noble");
  *     - uuid
  *     - characteristics (name, callback)
  */
-let connect = function (device_array) {
+let connect = function (device_array, socket) {
   let devices = {};
   for (let d of device_array) {
     devices[d.id] = d;
   }
 
+  let uuids = Object.values(devices).map((d) => d.uuid);
+
   Noble.on("stateChange", (state) => {
     if (state === "poweredOn") {
-      console.log("Scanning for devices...");
-      Noble.startScanning(Object.values(devices).map((d) => d.uuid));
+      console.log("Scanning for devices...", uuids);
+      Noble.startScanning(uuids);
     } else {
       console.log("Scan failed");
       Noble.stopScanning();
@@ -26,15 +28,21 @@ let connect = function (device_array) {
   Noble.on("discover", (peripheral) => {
     console.log(`Found ${peripheral.uuid}`);
     peripheral.connect((error) => {
+      socket.emit("connect_ble", devices[peripheral.id].name);
       console.log("Connected to", peripheral.uuid);
       peripheral.discoverAllServicesAndCharacteristics(
         onDeviceDiscovered(peripheral)
       );
     });
-    peripheral.on("disconnect", () => {
-      console.log(`Device disconnected, attempting to reconnect...`);
-      Noble.startScanning([devices[peripheral.id].uuid]);
-    });
+    if (devices[peripheral.id].disconnectHandler == false) {
+      peripheral.on("disconnect", () => {
+        socket.emit("disconnect_ble", devices[peripheral.id].name);
+        const uuid = devices[peripheral.id].uuid;
+        devices[peripheral.id].disconnectHandler = true;
+        console.log(`${uuid} disconnected, attempting to reconnect...`);
+        Noble.startScanning([uuid]);
+      });
+    }
     /*
     if (connected.length == devices.length) {
       console.log("All devices connnected");
@@ -45,9 +53,7 @@ let connect = function (device_array) {
 
   // Set up primary BLE device notifications (tension + accel)
   function onDeviceDiscovered(peripheral) {
-    console.log(peripheral.id);
     let device = devices[peripheral.id];
-    console.log(devices);
     return (error, services, characteristics) => {
       if (characteristics.length != device.characteristics.length) {
         console.log(
@@ -56,7 +62,10 @@ let connect = function (device_array) {
       }
       for (let i = 0; i < characteristics.length; i++) {
         const characteristic = characteristics[i];
-        characteristic.on("data", device.characteristics[i].callback);
+        characteristic.on("data", (data) => {
+          device.characteristics[i].callback(data);
+          socket.emit("connect_ble", devices[peripheral.id].name);
+        });
         characteristic.subscribe((error) => {
           if (error) {
             console.error("Error subscribing to notifications");

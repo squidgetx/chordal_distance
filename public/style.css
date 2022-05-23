@@ -1,5 +1,8 @@
 body {
   font-family: sans-serif;
+  margin: 1em;
+  background-color: hsl(43, 88%, 97%);
+  color: #444
 }
 
 .controller {
@@ -11,4 +14,27 @@ body {
 
 .controller:hover {
   background-color: grey;
+}
+
+span.connected {
+  color: green;
+  font-weight: bold;
+}
+
+span.disconnected {
+  color: grey;
+}
+
+#connected {
+  border-style: dashed;
+  border-width: 2px;
+  padding-left: 1em;
+}
+
+signal-monitor {
+  display: inline-block;
+}
+
+.signal-label {
+  margin-bottom: 0;
 }

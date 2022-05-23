@@ -65,25 +65,23 @@ let primaryCallback = (data) => {
   let accY = data.readFloatLE(4);
   let accZ = data.readFloatLE(8);
   let tension = data.readFloatLE(12) / 3000;
-  console.log(tension);
-  tension_GLOBAL = tension;
-};
-let secondaryAccelCallback = (data) => {
-  let accel = handleAcceleration(data);
+  tension_GLOBAL = Math.abs(tension);
+  angleX1_GLOBAL = accZ;
+  angleY1_GLOBAL = accY;
+  io.emit("tension", tension_GLOBAL);
+  io.emit("angle_x1", angleX1_GLOBAL);
+  io.emit("angle_y1", angleY1_GLOBAL);
 };
 
-function handleAcceleration(data) {
+let secondaryCallback = (data) => {
   let accX = data.readFloatLE();
   let accY = data.readFloatLE(4);
   let accZ = data.readFloatLE(8);
-
-  accMag = Math.sqrt(accX * accX + accY * accY + accZ * accZ);
-  angleXZ = Math.atan2(-accX, accZ);
-  return {
-    accMag: accMag,
-    angleXZ: angleXZ,
-  };
-}
+  angleX1_GLOBAL = accZ;
+  angleY1_GLOBAL = accY;
+  io.emit("angle_x2", angleX2_GLOBAL);
+  io.emit("angle_y2", angleY2_GLOBAL);
+};
 
 let io = Server.run();
 
@@ -110,6 +108,9 @@ io.on("connection", (socket) => {
     socket.emit("status", status);
   });
   socket.emit("status", status);
+  socket.on("server_check", (data) => {
+    socket.emit("server_ack", new Date().getTime());
+  });
 
   socket.on("tension", (data) => {
     tension_GLOBAL = data;
@@ -130,30 +131,35 @@ io.on("connection", (socket) => {
   Midi.socket = socket;
 });
 
-Ble.connect([
-  {
-    uuid: UUID_PRIMARY,
-    //id: "ea4d428e233340bb91ef1be5c710e41f",
-    id: "1b34449c550b41ae80ae7cc9553e76c5",
-    name: "primary",
-    characteristics: [
-      {
-        name: "primary",
-        callback: primaryCallback,
-      },
-    ],
-  },
-  {
-    uuid: UUID_SECONDARY,
-    id: "d839f315c4f84082ad1d4ebb1df398f1",
-    name: "secondary",
-    characteristics: [
-      {
-        name: "accel",
-        callback: primaryCallback,
-      },
-    ],
-  },
-]);
+Ble.connect(
+  [
+    {
+      uuid: UUID_PRIMARY,
+      //id: "ea4d428e233340bb91ef1be5c710e41f",
+      id: "1b34449c550b41ae80ae7cc9553e76c5",
+      name: "Primary",
+      characteristics: [
+        {
+          name: "primary",
+          callback: primaryCallback,
+        },
+      ],
+      disconnectHandler: false,
+    },
+    {
+      uuid: UUID_PRIMARY,
+      id: "a0183c83a61147ba27c081a2221b0105",
+      name: "Secondary",
+      characteristics: [
+        {
+          name: "accel",
+          callback: primaryCallback,
+        },
+      ],
+      disconnectHandler: false,
+    },
+  ],
+  io
+);
 
 setTimeout(() => init(io), 2000);
