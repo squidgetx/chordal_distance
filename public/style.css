@@ -48,3 +48,19 @@ button {
   font-style: italic;
   font-size: 10pt;
 }
+
+#restart {
+  margin-bottom: 1em;
+}
+
+#dead-server-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: none;
+  height: 1000px;
+  width: 100%;
+  background-color:hsl(0, 87%, 97%);
+  border-style: solid 2px black;
+  padding: 1em;
+}

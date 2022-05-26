@@ -117,14 +117,16 @@ window.onload = () => {
   setup_monitors(socket);
 
   // every 0.5s, check to see if the server is alive
-  let lastAckTime = 0;
+  let lastAckTime = new Date().getTime();
   setInterval(() => {
     socket.emit("server_check");
     let now = new Date().getTime();
-    if (now - lastAckTime > ACK_INTERVAL * 1.5) {
+    if (now - lastAckTime > ACK_INTERVAL * 2) {
       connected["Server"] = false;
+      document.getElementById("dead-server-modal").style.display = "block";
     } else {
       connected["Server"] = true;
+      document.getElementById("dead-server-modal").style.display = "none";
     }
     render_connection_status(connected);
   }, ACK_INTERVAL);

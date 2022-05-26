@@ -1,9 +1,10 @@
 const Ble = require("./ble");
 const Midi = require("./midi");
 const Server = require("./server");
+const PORT = 3000;
 const Easymidi = require("easymidi");
 const Nanotimer = require("./nanotimer");
-const { exec } = require("child_process");
+const { restart_all } = require("./restart");
 
 const Marimba = require("./marimba");
 const Strings = require("./strings");
@@ -92,7 +93,7 @@ let secondaryCallback = (data) => {
   io.emit("angle_y2", angleY2_GLOBAL);
 };
 
-let io = Server.run();
+let io = Server.run(PORT);
 
 io.on("connection", (socket) => {
   socket.on("list_devices", (data) => {
@@ -144,15 +145,28 @@ io.on("connection", (socket) => {
     );
     // After 5 seconds, use the average data to set the zero
     setTimeout(() => {
+      if (calibration_array.length == 0) {
+        socket.emit(
+          "calibrate_message",
+          "Calibration failed. Is the primary sensor connected?"
+        );
+        return;
+      }
       tension_offset =
         -calibration_array.reduce((a, b) => a + b) / calibration_array.length;
-      console.log(tension_offset);
       socket.emit(
         "calibrate_message",
         "Calibrating maximum force (15 seconds). Please load the handle with the maximum expected force."
       );
       calibration_array = [];
       setTimeout(() => {
+        if (calibration_array.length == 0) {
+          socket.emit(
+            "calibrate_message",
+            "Calibration failed. Is the primary sensor connected?"
+          );
+          return;
+        }
         tension_coefficient =
           100 /
           calibration_array.reduce((a, b) =>
@@ -170,24 +184,6 @@ io.on("connection", (socket) => {
 
   Midi.socket = socket;
 });
-
-let restart_all = function () {
-  // Close all applications and send a restart command to the OS
-  console.log("restarting");
-  let exec_handler = (error, stdout, stderr) => {
-    if (error) {
-      console.log(`error: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.log(`stderr: ${stderr}`);
-      return;
-    }
-    console.log(`stdout: ${stdout}`);
-  };
-  exec("./restart.sh", exec_handler);
-  process.exit();
-};
 
 Ble.connect(
   [

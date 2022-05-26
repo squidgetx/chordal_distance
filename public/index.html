@@ -9,8 +9,9 @@
     </head>
     <body>
         <h1>Chordal Distance</h1>
-            <button id="restart">Restart All</button>
-        <div id="connected"></div>
+        <button id="restart">Restart Server</button>
+        <div id="connected">
+        </div>
         <div id="monitors">
             <h3>Sensors</h3>
             <button id="calibrate">Calibrate Tension Sensor</button>
@@ -40,5 +41,12 @@
             <div id="status" class="controller">play</div>
         </div>
 
+        <div id="dead-server-modal">
+            <h2>The server is disconnected!</h2>
+            <p>If you are seeing this message because you pressed the "Restart Server" button, then don't worry. It should be back online shortly.</p>
+            <p>Otherwise, this means that Chordal Distance is <b>currently broken!</b>.</p>
+            <p>Please restart the server by clicking <a href="#" onclick="javascript:window.location.port=3001">here</a></p>.
+            <p>If that doesn't work, you may need to restart the server manually.</p>
+        </div>
     </body>
 </html>
