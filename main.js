@@ -3,6 +3,7 @@ const Midi = require("./midi");
 const Server = require("./server");
 const Easymidi = require("easymidi");
 const Nanotimer = require("./nanotimer");
+const { exec } = require("child_process");
 
 const Marimba = require("./marimba");
 const Strings = require("./strings");
@@ -163,9 +164,30 @@ io.on("connection", (socket) => {
       }, 15000);
     }, 5000);
   });
+  socket.on("restart", () => {
+    restart_all();
+  });
 
   Midi.socket = socket;
 });
+
+let restart_all = function () {
+  // Close all applications and send a restart command to the OS
+  console.log("restarting");
+  let exec_handler = (error, stdout, stderr) => {
+    if (error) {
+      console.log(`error: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.log(`stderr: ${stderr}`);
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+  };
+  exec("./restart.sh", exec_handler);
+  process.exit();
+};
 
 Ble.connect(
   [
@@ -198,4 +220,4 @@ Ble.connect(
   io
 );
 
-setTimeout(() => init(io), 2000);
+setTimeout(() => init(io), 5000);

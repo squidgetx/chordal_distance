@@ -147,4 +147,9 @@ window.onload = () => {
     cal_status.innerHTML = "";
     button.removeAttribute("disabled");
   });
+
+  const restart = document.getElementById("restart");
+  restart.addEventListener("click", () => {
+    socket.emit("restart");
+  });
 };
