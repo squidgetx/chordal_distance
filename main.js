@@ -146,7 +146,6 @@ io.on("connection", (socket) => {
       tension_offset =
         -calibration_array.reduce((a, b) => a + b) / calibration_array.length;
       console.log(tension_offset);
-      console.log(calibration_array);
       socket.emit(
         "calibrate_message",
         "Calibrating maximum force (15 seconds). Please load the handle with the maximum expected force."

@@ -1,30 +1,36 @@
 #include "Arduino_LSM9DS1.h"
 #include "ArduinoBLE.h"
 #include <HX711_ADC.h>
-//default value: 16
-// HX711 circuit wiring
+
+// HX711 setup
 const int LOADCELL_DOUT_PIN = 3;
 const int LOADCELL_SCK_PIN = 2;
+
+// autotare with 1s of data collection
+const int LOADCELL_TARE_MS = 1000;
+const bool LOADCELL_TARE = true;
 HX711_ADC LoadCell(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 
-boolean newDataReady = 0;
-
+// Data packet contains 4 floats: one for each of the 3 accelerometer axes
+// plus 1 float for the load sensor
+const char* UUID = "0b5dca24-b5ff-4d4e-923e-be8c16ae8b2e";
+const int TRANSMIT_INTERVAL_MS = 30;
 float data[4];
+BLEService tensionService(UUID); 
+BLECharacteristic dataCharacteristic(
+  UUID, 
+  BLERead | BLENotify, 
+  sizeof(float) * 4
+);
 
 long timestamp = 0;
-//HX711 scale;
-bool connected = false;
-
-// BLE
-BLEService tensionService("0b5dca24-b5ff-4d4e-923e-be8c16ae8b2e"); 
-BLECharacteristic dataCharacteristic ("0b5dca24-b5ff-4d4e-923e-be8c16ae8b2e4", BLERead | BLENotify, sizeof(float) * 4);
 
 void setup() {
   Serial.begin(9600);
   Serial.println("begin");
 
   LoadCell.begin();
-  LoadCell.start(2000, true);
+  LoadCell.start(LOADCELL_TARE_MS, LOADCELL_TARE);
     
   // attempt to start the IMU:
   if (!IMU.begin()) {
@@ -64,6 +70,7 @@ void getIMU() {
 }
 
 void getScale() {
+  static bool newDataReady = false;
   if (LoadCell.update()) {
     newDataReady = true;
   }
@@ -86,14 +93,13 @@ void loop() {
     // while the central remains connected:
     while (central.connected()) {
       // read sensors:
-      if (millis() - timestamp > 40) { 
+      getScale();
+      if (millis() - timestamp > TRANSMIT_INTERVAL_MS) { 
         getIMU();
-        getScale();
         if (central.connected()) {
           dataCharacteristic.writeValue(data, sizeof(data));
         }
         timestamp = millis();
-        //Serial.println(central.rssi());
       }
     }
   } else {
