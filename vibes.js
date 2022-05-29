@@ -72,7 +72,7 @@ function tick(tension, angleX1, angleY1, angleX2, angleY2) {
   lastAngleY1 = angleY1;
   lastAngleY2 = angleY2;
   lastTension = tension;
-  Midi.setControl(midi_device, CHANNEL, 1, Util.scale(tension, 0, 100, 20, 98));
+  Midi.setControl(midi_device, CHANNEL, 1, Util.scale(tension, 0, 100, 0, 98));
   Midi.setControl(
     midi_device,
     CHANNEL,
@@ -80,7 +80,7 @@ function tick(tension, angleX1, angleY1, angleX2, angleY2) {
     Util.scale(lastAngleY2, 0, 1, 64, 127)
   );
 
-  frequency = Util.clamp(3000 / (energy + 1), 100, 5000);
+  frequency = Util.clamp(4000 / (energy + 1), 100, 5000);
 }
 
 module.exports = {

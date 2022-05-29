@@ -79,9 +79,6 @@ let noteSustain = function (device, channel, voice, note, velocity) {
       channel: channel,
     });
   }
-  console.log(
-    `sending note ${note} with vel ${velocity} to channel ${channel}`
-  );
   for (let i = 0; i < 5; i++) {
     device.send("noteon", {
       note: note,
@@ -94,7 +91,20 @@ let noteSustain = function (device, channel, voice, note, velocity) {
 
 let playChord = function (device, channel, notes, velocities) {
   for (let i = 0; i < notes.length; i++) {
-    noteSustain(midi_device, channel, i, notes[i], velocities[i]);
+    noteSustain(device, channel, i, notes[i], velocities[i]);
+  }
+};
+
+let stopAll = function (device, channel) {
+  for (let key in ACTIVE_VOICES) {
+    if (key.startsWith(`${channel}_`)) {
+      device.send("noteoff", {
+        note: ACTIVE_VOICES[key],
+        velocity: 0,
+        channel: channel,
+      });
+      delete ACTIVE_VOICES[key];
+    }
   }
 };
 
@@ -128,4 +138,5 @@ module.exports = {
   set_mute: set_mute,
   NOTES: NOTES,
   INTERVALS: INTERVALS,
+  stopAll,
 };

@@ -37,7 +37,7 @@ const NOTES = [
 // or, add new color
 
 function playNote() {
-  let octave = Math.floor(Util.scale(energy, 0, 24, 2, 4));
+  let octave = Math.floor(Util.clamp_scale(energy, 6, 24, 2, 4));
   let note = Harmony.makeNote(Util.index(lastAngleX1, NOTES), octave);
 
   let velocity = Util.scale(energy, 0, 24, 30, 100);

@@ -64,7 +64,7 @@ let init = function (socket) {
 };
 
 let calibration_array = [];
-let tension_coefficient = 1 / 3000;
+let tension_coefficient = 1 / 6000;
 let tension_offset = 0;
 
 let primaryCallback = (data) => {
@@ -73,8 +73,8 @@ let primaryCallback = (data) => {
   let accZ = data.readFloatLE(8);
   let tension_raw = data.readFloatLE(12);
   tension_GLOBAL = Math.abs(tension_raw + tension_offset) * tension_coefficient;
-  angleX1_GLOBAL = accZ;
-  angleY1_GLOBAL = accY;
+  angleX1_GLOBAL = 0.1 * Math.abs(accZ) + 0.9 * angleX1_GLOBAL;
+  angleY1_GLOBAL = 0.1 * Math.abs(accY) + 0.9 * angleY1_GLOBAL;
   io.emit("tension", tension_GLOBAL);
   io.emit("angle_x1", angleX1_GLOBAL);
   io.emit("angle_y1", angleY1_GLOBAL);
@@ -87,8 +87,8 @@ let secondaryCallback = (data) => {
   let accX = data.readFloatLE();
   let accY = data.readFloatLE(4);
   let accZ = data.readFloatLE(8);
-  angleX1_GLOBAL = accZ;
-  angleY1_GLOBAL = accY;
+  angleX2_GLOBAL = Math.abs(accZ);
+  angleY2_GLOBAL = Math.abs(accY);
   io.emit("angle_x2", angleX2_GLOBAL);
   io.emit("angle_y2", angleY2_GLOBAL);
 };
@@ -154,6 +154,8 @@ io.on("connection", (socket) => {
       }
       tension_offset =
         -calibration_array.reduce((a, b) => a + b) / calibration_array.length;
+
+      console.log("Tension offset: ", tension_offset);
       socket.emit(
         "calibrate_message",
         "Calibrating maximum force (15 seconds). Please load the handle with the maximum expected force."
@@ -172,7 +174,7 @@ io.on("connection", (socket) => {
           calibration_array.reduce((a, b) =>
             Math.max(Math.abs(a), Math.abs(b))
           );
-        console.log(tension_coefficient);
+        console.log("Tension coeff: ", tension_coefficient);
         socket.emit("calibrate_finish");
         calibrate_GLOBAL = false;
       }, 15000);
@@ -190,7 +192,7 @@ Ble.connect(
     {
       uuid: UUID_PRIMARY,
       //id: "ea4d428e233340bb91ef1be5c710e41f",
-      id: "1b34449c550b41ae80ae7cc9553e76c5",
+      id: "385afa66414a4387a0be540c196215a9",
       name: "Primary",
       characteristics: [
         {
@@ -201,13 +203,13 @@ Ble.connect(
       disconnectHandler: false,
     },
     {
-      uuid: UUID_PRIMARY,
-      id: "a0183c83a61147ba27c081a2221b0105",
+      uuid: UUID_SECONDARY,
+      id: "8d9dddbbabc84ee6ac84e6f9a97c7daf",
       name: "Secondary",
       characteristics: [
         {
           name: "accel",
-          callback: primaryCallback,
+          callback: secondaryCallback,
         },
       ],
       disconnectHandler: false,
@@ -216,4 +218,4 @@ Ble.connect(
   io
 );
 
-setTimeout(() => init(io), 5000);
+init(io);

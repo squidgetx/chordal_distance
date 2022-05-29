@@ -46,13 +46,15 @@ const TNOTES = [
 // or, add new color
 
 function playNote() {
-  let note = Harmony.makeNote(Util.index(lastAngleX2, NOTES), 3);
+  let note = Harmony.makeNote(Util.index(lastAngleX2, NOTES), 2);
 
   let velocity = Util.scale(energy, 0, 24, 30, 100);
   let duration = 100;
   //console.log("note " + note + " " + velocity);
 
-  Midi.playNote(midi_device, CHANNEL, note, velocity, duration);
+  if (energy > 18) {
+    Midi.playNote(midi_device, CHANNEL, note, velocity, duration);
+  }
 
   //let tvelocity = Util.clamp(Util.scale(energy, 16, 24, 0, 100), 0, 127);
   //let tnote = Harmony.makeNote(Util.index(lastAngleX2, TNOTES), octave);
@@ -75,16 +77,23 @@ function tick(tension, angleX1, angleY1, angleX2, angleY2) {
     midi_device,
     CHANNEL,
     1,
-    Util.scale(tension, 0, 100, 40, 127)
+    Util.scale(tension, 50, 100, 40, 127)
   );
   Midi.setControl(
     midi_device,
     CHANNEL,
     2,
-    Util.scale(lastAngleY2, 0, 1, 64, 127)
+    Util.scale(lastAngleY1, 0, 1, 64, 127)
+  );
+  // drive
+  Midi.setControl(
+    midi_device,
+    CHANNEL,
+    3,
+    Util.scale(tension, 50, 100, 16, 96)
   );
 
-  frequency = Util.clamp(5000 / (energy + 1), 100, 5000);
+  frequency = Util.clamp_scale(energy, 12, 24, 500, 1500);
 }
 
 module.exports = {
