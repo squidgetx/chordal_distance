@@ -1,4 +1,9 @@
 function clamp(a, l, u) {
+  if (l > u) {
+    let temp = u;
+    u = l;
+    l = temp;
+  }
   return Math.min(Math.max(a, l), u);
 }
 

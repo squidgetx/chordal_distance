@@ -37,14 +37,16 @@ const NOTES = [
 // or, add new color
 
 function playNote() {
-  let octave = Math.floor(Util.clamp_scale(energy, 6, 24, 2, 4));
+  let octave = Math.floor(Util.clamp_scale(energy, 6, 24, 3, 4));
   let note = Harmony.makeNote(Util.index(lastAngleX1, NOTES), octave);
 
   let velocity = Util.scale(energy, 0, 24, 30, 100);
   let duration = 100;
   //console.log("note " + note + " " + velocity);
 
-  Midi.playNote(midi_device, CHANNEL, note, velocity, duration);
+  if (energy > 12) {
+    Midi.playNote(midi_device, CHANNEL, note, velocity, duration);
+  }
 
   clock.setTimeout(playNote, "", frequency);
 }
@@ -66,7 +68,7 @@ function tick(tension, angleX1, angleY1, angleX2, angleY2) {
     Util.scale(lastAngleY1, 0, 1, 1, 127)
   );
 
-  frequency = Util.clamp(2000 / (energy + 1), 100, 5000);
+  frequency = Util.clamp(3000 / (energy + 1), 100, 5000);
 }
 
 module.exports = {

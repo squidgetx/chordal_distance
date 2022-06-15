@@ -46,19 +46,25 @@ const TNOTES = [
 // or, add new color
 
 function playNote() {
-  let octave = Math.floor(Util.scale(energy, 0, 24, 2, 6));
+  let octave = Math.floor(Util.scale(energy, 0, 24, 3, 4));
   let note = Harmony.makeNote(Util.index(lastAngleX2, NOTES), octave);
 
   let velocity = Util.scale(energy, 0, 24, 30, 100);
   let duration = 100;
   //console.log("note " + note + " " + velocity);
 
-  Midi.playNote(midi_device, CHANNEL, note, velocity, duration);
+  let tvelocity = Util.clamp(Util.scale(energy, 0, 24, 0, 72), 0, 127);
+  let tnote = Harmony.makeNote(Util.index(lastAngleX1, TNOTES), octave);
 
-  let tvelocity = Util.clamp(Util.scale(energy, 16, 24, 0, 100), 0, 127);
-  let tnote = Harmony.makeNote(Util.index(lastAngleX2, TNOTES), octave);
-
-  Midi.playNote(midi_device, CHANNEL, tnote, tvelocity, duration);
+  frequency = Util.clamp(6000 / (energy + 1) + 100, 100, 5000);
+  let delay = Util.scale(lastAngleY1, 0, 1, 0, frequency);
+  if (energy > 0) {
+    Midi.playNote(midi_device, CHANNEL, note, velocity, duration);
+    setTimeout(
+      () => Midi.playNote(midi_device, CHANNEL, tnote, tvelocity, duration),
+      0
+    );
+  }
 
   clock.setTimeout(playNote, "", frequency);
 }
@@ -66,21 +72,28 @@ function playNote() {
 function tick(tension, angleX1, angleY1, angleX2, angleY2) {
   // more tension increases energy, up to a max value of 24
   // linear decay
-  energy = Util.scale(tension, 0, 100, 0, 24);
   lastAngleX1 = angleX1;
   lastAngleX2 = angleX2;
   lastAngleY1 = angleY1;
   lastAngleY2 = angleY2;
   lastTension = tension;
-  Midi.setControl(midi_device, CHANNEL, 1, Util.scale(tension, 0, 100, 0, 98));
+  energy = Util.clamp_scale(tension, 20, 100, 0, 24);
+  if (energy > 12) {
+    Midi.setControl(
+      midi_device,
+      CHANNEL,
+      1,
+      Util.scale(energy, 12, 24, 72, 36)
+    );
+  } else {
+    Midi.setControl(midi_device, CHANNEL, 1, Util.scale(energy, 0, 12, 36, 72));
+  }
   Midi.setControl(
     midi_device,
     CHANNEL,
     2,
-    Util.scale(lastAngleY2, 0, 1, 64, 127)
+    Util.scale(lastAngleY2, 0, 1, 0, 127)
   );
-
-  frequency = Util.clamp(4000 / (energy + 1), 100, 5000);
 }
 
 module.exports = {
