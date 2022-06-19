@@ -52,7 +52,7 @@ function playNote() {
   let duration = 100;
   //console.log("note " + note + " " + velocity);
 
-  if (energy > 18) {
+  if (energy > 13) {
     Midi.playNote(midi_device, CHANNEL, note, velocity, duration);
   }
 
@@ -83,7 +83,7 @@ function tick(tension, angleX1, angleY1, angleX2, angleY2) {
     midi_device,
     CHANNEL,
     2,
-    Util.scale(lastAngleY1, 0, 1, 64, 127)
+    Util.scale(lastAngleY1, 0, 1, 0, 127)
   );
   // drive
   Midi.setControl(

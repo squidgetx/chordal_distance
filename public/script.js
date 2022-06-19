@@ -43,7 +43,7 @@ let setup_slider = function (name) {
   const aslider = document.getElementById(`angle${name}_slider`);
   aslider.oninput = () => {
     console.log(aslider.value);
-    socket.emit("angle" + name, parseInt(aslider.value) / 100);
+    socket.emit("angle" + name, (parseInt(aslider.value) / 100) * 90);
   };
 };
 
@@ -90,6 +90,12 @@ window.onload = () => {
 
   socket.on("status", (data) => {
     document.getElementById("status").innerHTML = data;
+  });
+
+  socket.on("tension", (data) => {
+    if (Math.random() > 0.9) {
+      console.log(data);
+    }
   });
 
   const slider = document.getElementById("tension_slider");

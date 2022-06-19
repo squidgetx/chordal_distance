@@ -11,6 +11,7 @@ const Strings = require("./strings");
 const Vibes = require("./vibes");
 const Bass = require("./bass");
 const Horns = require("./horns");
+const Util = require("./util");
 
 let tension_GLOBAL = 0;
 let angleX1_GLOBAL = 0;
@@ -45,10 +46,10 @@ let tick = function () {
   for (const i of instruments) {
     i.tick(
       tension_GLOBAL,
-      angleX1_GLOBAL,
-      angleY1_GLOBAL,
-      angleX2_GLOBAL,
-      angleY2_GLOBAL
+      Util.scale(angleX1_GLOBAL, -90, 90, 0, 1),
+      Util.scale(angleY1_GLOBAL, 0, 180, 0, 1),
+      Util.scale(angleX2_GLOBAL, -90, 90, 0, 1),
+      Util.scale(angleY2_GLOBAL, 0, 180, 0, 1)
     );
   }
 };
@@ -67,14 +68,21 @@ let calibration_array = [];
 let tension_coefficient = 1 / 6000;
 let tension_offset = 0;
 
+const PI = Math.PI;
+const SMOOTH = 0.75;
+
 let primaryCallback = (data) => {
-  let accX = data.readFloatLE();
-  let accY = data.readFloatLE(4);
-  let accZ = data.readFloatLE(8);
+  let accY = -data.readFloatLE();
+  let accZ = -data.readFloatLE(4);
+  let accX = data.readFloatLE(8);
+  let roll = Math.abs(Math.atan2(accY, accZ) * 180.0) / PI;
+  let pitch =
+    (Math.atan2(-accX, Math.sqrt(accY * accY + accZ * accZ)) * 180.0) / PI;
+  angleX1_GLOBAL = angleX1_GLOBAL * SMOOTH + pitch * (1 - SMOOTH);
+  angleY1_GLOBAL = angleY1_GLOBAL * SMOOTH + roll * (1 - SMOOTH);
+
   let tension_raw = data.readFloatLE(12);
   tension_GLOBAL = Math.abs(tension_raw + tension_offset) * tension_coefficient;
-  angleX1_GLOBAL = 0.1 * Math.abs(accZ) + 0.9 * angleX1_GLOBAL;
-  angleY1_GLOBAL = 0.1 * Math.abs(accY) + 0.9 * angleY1_GLOBAL;
   io.emit("tension", tension_GLOBAL);
   io.emit("angle_x1", angleX1_GLOBAL);
   io.emit("angle_y1", angleY1_GLOBAL);
@@ -84,11 +92,14 @@ let primaryCallback = (data) => {
 };
 
 let secondaryCallback = (data) => {
-  let accX = data.readFloatLE();
-  let accY = data.readFloatLE(4);
-  let accZ = data.readFloatLE(8);
-  angleX2_GLOBAL = Math.abs(accZ);
-  angleY2_GLOBAL = Math.abs(accY);
+  let accY = -data.readFloatLE();
+  let accZ = -data.readFloatLE(4);
+  let accX = data.readFloatLE(8);
+  let roll = Math.abs(Math.atan2(accY, accZ) * 180.0) / PI;
+  let pitch =
+    (Math.atan2(-accX, Math.sqrt(accY * accY + accZ * accZ)) * 180.0) / PI;
+  angleX2_GLOBAL = angleX2_GLOBAL * SMOOTH + pitch * (1 - SMOOTH);
+  angleY2_GLOBAL = angleY2_GLOBAL * SMOOTH + roll * (1 - SMOOTH);
   io.emit("angle_x2", angleX2_GLOBAL);
   io.emit("angle_y2", angleY2_GLOBAL);
 };
@@ -204,7 +215,7 @@ Ble.connect(
     },
     {
       uuid: UUID_SECONDARY,
-      id: "8d9dddbbabc84ee6ac84e6f9a97c7daf",
+      id: "d839f315c4f84082ad1d4ebb1df398f1",
       name: "Secondary",
       characteristics: [
         {
